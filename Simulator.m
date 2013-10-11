@@ -28,16 +28,16 @@
         appPath = [[fileManager currentDirectoryPath] stringByAppendingPathComponent:appPath];
     }   
     
-    _appPath = [appPath retain];
+    _appPath = appPath;
 
     if (![fileManager fileExistsAtPath:_appPath]) {
         WaxLog(@"App path '%@' does not exist!", _appPath);
         exit(EXIT_FAILURE);
     }
 
-    if (!sdk) _sdk = [[DTiPhoneSimulatorSystemRoot defaultRoot] retain];
+    if (!sdk) _sdk = [DTiPhoneSimulatorSystemRoot defaultRoot];
     else {
-        _sdk = [[DTiPhoneSimulatorSystemRoot rootWithSDKVersion:sdk] retain];
+        _sdk = [DTiPhoneSimulatorSystemRoot rootWithSDKVersion:sdk];
     }
     
     if (!_sdk) {
@@ -56,9 +56,9 @@
 		_family = [NSNumber numberWithInt: 1];
 	}
 	
-	_env = [env retain];
-	_args = [args retain];
-    _videoPath = [videoPath retain];
+	_env = env;
+	_args = args;
+    _videoPath = videoPath;
 
     return self;
 }
@@ -131,7 +131,6 @@
         NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:@"mp4v", QTAddImageCodecType, [NSNumber numberWithLong:codecLowQuality], QTAddImageCodecQuality, nil];
         [_movie addImage:image forDuration:duration withAttributes:attributes];
     }
-    [image release];
     CGImageRelease(imageRef);
 }
 
@@ -148,13 +147,12 @@
     }
     
     WaxLog(@"Getting window list");
-    NSArray *windowList = (NSArray *)CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
+    NSArray *windowList = (NSArray *)CFBridgingRelease(CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID));
     for (NSDictionary *info in windowList) {
         if ([[info objectForKey:(NSString *)kCGWindowOwnerName] isEqualToString:@"iOS Simulator"] && ![[info objectForKey:(NSString *)kCGWindowName] isEqualToString:@""]) {
             _windowID = [[info objectForKey:(NSString *)kCGWindowNumber] unsignedIntValue];
         }
     }
-    [windowList release];
     if (_windowID) {
         _movie = [[QTMovie alloc] initToWritableFile:[NSString stringWithCString:tmpnam(nil) encoding:[NSString defaultCStringEncoding]] error:NULL];
         _lastInterval = [NSDate timeIntervalSinceReferenceDate];;
@@ -170,7 +168,6 @@
         if (!success) {
             WaxLog(@"Failed to write movie: %@", error);
         }
-        [_movie release];
     }
     if (error) {
         WaxLog(@"Session ended with error. %@", [error localizedDescription]);
